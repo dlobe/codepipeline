@@ -1,5 +1,5 @@
 pipeline:
-  name: MyPipeline
+  name: MyCloudformationPipeline
   roleArn: arn:aws:iam::141341433137:role/CodePipelineRole  # Ensure this IAM role has the necessary permissions
   artifactStore:
     type: S3
@@ -8,7 +8,7 @@ pipeline:
   stages:
     - name: Source
       actions:
-        - name: Source
+        - name: GitHub_Source
           actionTypeId:
             category: Source
             owner: AWS
@@ -17,7 +17,7 @@ pipeline:
           outputArtifacts:
             - name: SourceArtifact
           configuration:
-            ConnectionArn: <CodeStar-Connection-ARN>  # Replace with your actual CodeStar Connection ARN
+            ConnectionArn: "arn:aws:codestar-connections:us-east-1:141341433137:connection/b3abc72c-9de3-438e-875f-d746a091ff35"  # Replace with your actual CodeStar Connection ARN
             FullRepositoryId: "dlobe/codepipeline"  # Format: "github-username/repository-name"
             BranchName: main
           runOrder: 1  # Execution order within the stage
@@ -40,7 +40,7 @@ pipeline:
 
     - name: Deploy
       actions:
-        - name: Deploy
+        - name: Deploy_Cloudformation
           actionTypeId:
             category: Deploy
             owner: AWS
@@ -50,7 +50,7 @@ pipeline:
             - name: BuildArtifact
           configuration:
             ActionMode: CREATE_UPDATE  # Could be CREATE_UPDATE or REPLACE_ON_FAILURE
-            StackName: "my-stack"  # Name of the CloudFormation stack to create or update
+            StackName: "pipeline-stack"  # Name of the CloudFormation stack to create or update
             Capabilities: CAPABILITY_NAMED_IAM  # Required if your template includes certain IAM resources
             TemplatePath: "BuildArtifact::cloudformation/template.yaml"  # Path to CloudFormation template in build output
           runOrder: 1  # Execution order within the stage

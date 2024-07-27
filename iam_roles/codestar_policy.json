@@ -7,8 +7,7 @@
                "codestar-connections:UseConnection",
                "codestar-connections:PassConnection"
             ],   
-            "Resource": "arn:aws:codestar-connections:us-east-1:141341433137:connection/01dc7a38-01d0-4c94-adb2-e4fe313edf8e"
-
+            "Resource": "arn:aws:codestar-connections:us-east-1:141341433137:connection/b3abc72c-9de3-438e-875f-d746a091ff35"
         }
     ]
 }
