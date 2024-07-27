@@ -1,0 +1,58 @@
+---
+pipeline:
+  name: MyPipeline
+  roleArn: arn:aws:iam::141341433137:role/CodePipelineRole 
+  artifactStore:
+    type: S3
+    location: cloudtecdev-codepipeline-artifacts
+  stages:
+    - name: Source
+      actions:
+        - name: Source
+          actionTypeId:
+            category: Source
+            owner: AWS
+            provider: CodeStarSourceConnection
+            version: "1"
+          outputArtifacts:
+            - name: SourceArtifact
+          configuration:
+            ConnectionArn: <CodeStar-Connection-ARN>
+            FullRepositoryId: dlobe/codepipeline
+            BranchName: main
+#            Owner: dlobe
+#            Repo: codepipeline
+#            Branch: main
+#            OAuthToken: '{{resolve:secretsmanager:GitHubOAuthToken:SecretString}}'
+          runOrder: 1
+    - name: Build
+      actions:
+        - name: Build
+          actionTypeId:
+            category: Build
+            owner: AWS
+            provider: CodeBuild
+            version: "1"
+          inputArtifacts:
+            - name: SourceArtifact
+          outputArtifacts:
+            - name: BuildArtifact
+          configuration:
+            ProjectName: aws-devops-pipeline
+          runOrder: 1
+    - name: Deploy
+      actions:
+        - name: Deploy
+          actionTypeId:
+            category: Deploy
+            owner: AWS
+            provider: CloudFormation
+            version: "1"
+          inputArtifacts:
+            - name: BuildArtifact
+          configuration:
+            ActionMode: CREATE_UPDATE
+            StackName: my-stack
+            Capabilities: CAPABILITY_NAMED_IAM
+            TemplatePath: BuildArtifact::cloudformation/template.yaml
+          runOrder: 1

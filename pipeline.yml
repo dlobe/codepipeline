@@ -1,27 +1,27 @@
----
 pipeline:
   name: MyPipeline
-  roleArn: arn:aws:iam::141341433137:role/CodePipelineRole 
+  roleArn: arn:aws:iam::141341433137:role/CodePipelineRole  # Ensure this IAM role has the necessary permissions
   artifactStore:
     type: S3
-    location: cloudtecdev-codepipeline-artifacts
+    location: cloudtecdev-codepipeline-artifacts  # S3 bucket where artifacts are stored
+
   stages:
     - name: Source
       actions:
         - name: Source
           actionTypeId:
             category: Source
-            owner: ThirdParty
-            provider: GitHub
-            version: 1
+            owner: AWS
+            provider: CodeStarSourceConnection
+            version: "1"  # Always "1" for CodeStarSourceConnection
           outputArtifacts:
             - name: SourceArtifact
           configuration:
-            Owner: dlobe
-            Repo: <repository-name>
-            Branch: main
-            OAuthToken: <oauth-token>
-          runOrder: 1
+            ConnectionArn: <CodeStar-Connection-ARN>  # Replace with your actual CodeStar Connection ARN
+            FullRepositoryId: "dlobe/codepipeline"  # Format: "github-username/repository-name"
+            BranchName: main
+          runOrder: 1  # Execution order within the stage
+
     - name: Build
       actions:
         - name: Build
@@ -29,14 +29,15 @@ pipeline:
             category: Build
             owner: AWS
             provider: CodeBuild
-            version: 1
+            version: "1"  # Always "1" for CodeBuild
           inputArtifacts:
             - name: SourceArtifact
           outputArtifacts:
             - name: BuildArtifact
           configuration:
-            ProjectName: <codebuild-project-name>
-          runOrder: 1
+            ProjectName: "aws-devops-pipeline"  # Ensure this CodeBuild project is already set up in AWS CodeBuild
+          runOrder: 1  # Execution order within the stage
+
     - name: Deploy
       actions:
         - name: Deploy
@@ -44,12 +45,12 @@ pipeline:
             category: Deploy
             owner: AWS
             provider: CloudFormation
-            version: 1
+            version: "1"  # Always "1" for CloudFormation
           inputArtifacts:
             - name: BuildArtifact
           configuration:
-            ActionMode: CHANGE_SET_REPLACE
-            StackName: my-stack
-            Capabilities: CAPABILITY_NAMED_IAM
-            TemplatePath: BuildArtifact::template.yaml
-          runOrder: 1
+            ActionMode: CREATE_UPDATE  # Could be CREATE_UPDATE or REPLACE_ON_FAILURE
+            StackName: "my-stack"  # Name of the CloudFormation stack to create or update
+            Capabilities: CAPABILITY_NAMED_IAM  # Required if your template includes certain IAM resources
+            TemplatePath: "BuildArtifact::cloudformation/template.yaml"  # Path to CloudFormation template in build output
+          runOrder: 1  # Execution order within the stage
